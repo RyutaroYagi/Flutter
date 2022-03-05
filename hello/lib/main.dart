@@ -1,111 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 void main() {
-  runApp(const MyApp());
+  runApp(const FriendlyChatApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+String _name = 'Your Name';
 
-  // This widget is the root of your application.
+class FriendlyChatApp extends StatelessWidget {
+  const FriendlyChatApp({
+    Key? key,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: "Friendly Chat",
+      home: ChatScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  bool flag = false;
-
-  _click() async {
-    setState(() {
-      flag = !flag;
-    });
-  }
+class ChatMessage extends StatelessWidget {
+  const ChatMessage({required this.text, Key? key}) : super(key: key);
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: const [Icon(Icons.create), Text("First title")],
-        ),
-      ),
-      drawer: const Drawer(
-        child: const Center(
-          child: const Text("Drawer"),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            AnimatedOpacity(
-              opacity: flag ? 0.1 : 1.0,
-              duration: Duration(seconds: 3),
-              child: Text(
-                "fadeout text",
-                style: Theme.of(context).textTheme.headline4,
-              ),
-            ),
-            AnimatedSize(
-              duration: Duration(seconds: 3),
-              vsync: this,
-              child: SizedBox(
-                width: flag ? 50 : 200,
-                height: flag ? 50 : 200,
-                child: Container(color: Colors.purple),
-              ),
-            ),
-            AnimatedAlign(
-              alignment: flag ? Alignment.topLeft : Alignment.bottomRight,
-              duration: Duration(seconds: 3),
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: Container(color: Colors.green),
-              ),
-            )
-          ],
-        ),
-      ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FloatingActionButton(
-            onPressed: _click,
-            child: Icon(Icons.add),
-          )
+          Container(
+            margin: const EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(child: Text(_name[0])),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_name, style: Theme.of(context).textTheme.headline4),
+              Container(
+                margin: const EdgeInsets.only(top: 5.0),
+                child: Text(text),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-class StatelesPage extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final _textController = TextEditingController();
+
+  void _handleSubmitted(String text) {
+    _textController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Stateles Page"),
-      ),
-      body: const Text("Stateles pattern"),
+      appBar: AppBar(title: const Text('Friendly Chat')),
+      body: _buildTextComposer(),
     );
+  }
+
+  Widget _buildTextComposer() {
+    return IconTheme(
+        data: IconThemeData(color: Theme.of(context).colorScheme.secondary),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            children: [
+              Flexible(
+                child: TextField(
+                  controller: _textController,
+                  onSubmitted: _handleSubmitted,
+                  decoration: const InputDecoration.collapsed(
+                      hintText: 'Send a message'),
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () => _handleSubmitted(_textController.text),
+                ),
+              )
+            ],
+          ),
+        ));
   }
 }
